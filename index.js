@@ -9,7 +9,8 @@ app.use(express.json())
 
 const fileUpload = require('express-fileupload');
 app.use(fileUpload({
-    useTempFiles : true
+    useTempFiles : true,
+    tempFileDir:'/tmp/'
     
 }));
 
