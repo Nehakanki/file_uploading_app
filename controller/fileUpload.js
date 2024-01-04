@@ -42,9 +42,14 @@ function isFileSupported(type, supportedTypes){
 }
 
 //upload to cloudinary
-async function uploadToCloudinary(file,folder){
+async function uploadToCloudinary(file,folder, quality){
     const options ={folder};
     console.log("temp file path", file.tempFilePath);
+
+    if(quality){
+        options.quality= quality;
+    }
+
     options.resource_type="auto";//imp part
     return await cloudinary.uploader.upload(file.tempFilePath, options);
 }
@@ -146,3 +151,57 @@ exports.videoUpload = async (req,res)=>{
         
     }
 }
+
+exports.imageReducer = async(req,res)=>{
+    try{
+        //fetch data
+        const {name, tags, email} = req.body;
+        console.log(name, tags, email);
+        const file = req.files.imageFile;
+        console.log(file);
+
+        //Validation
+        const supportedTypes =["jpg","jpeg","png"];
+        const fileType= file.name.split('.')[1].toLowerCase();
+
+        console.log("filetype", fileType);
+        if(!isFileSupported(fileType, supportedTypes)){
+            return res.status(400).json({
+                success:false,
+                message:" Not a Supported type",
+            })
+        }
+
+        //if file format is supported 
+
+console.log("Uploading to cloudinary in folder Neha");
+
+const response = await uploadToCloudinary(file , "Neha", 70);
+console.log(response);
+
+const fileSchema = await File.create({
+
+    name,
+    tags,
+    email,
+    imageUrl: response.secure_url,
+})
+
+res.json({
+    success:true,
+    message:"Image Uploaded succesfully",
+    imageUrl:response.secure_url,
+
+})
+
+        
+
+    }catch (err) {
+        console.error("Error in uploading:", err);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+
